@@ -1,0 +1,20 @@
+import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
+import * as parserService from './parser.service';
+
+const runParserSchema = z.object({
+  source: z.enum(['demo', 'csv']).default('demo'),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  city: z.string().optional(),
+  dealType: z.enum(['rent', 'sale']).optional(),
+});
+
+export async function runParser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const options = runParserSchema.parse(req.body);
+    const result = await parserService.runParser(options);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
