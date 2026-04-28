@@ -18,8 +18,10 @@ export function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [parserRunning, setParserRunning] = useState(false);
-  const [parserSource, setParserSource] = useState<'demo' | 'csv'>('demo');
+  const [parserSource, setParserSource] = useState<'demo' | 'csv' | 'avito'>('demo');
   const [parserLimit, setParserLimit] = useState(20);
+  const [parserCity, setParserCity] = useState('nizhniy_novgorod');
+  const [parserDealType, setParserDealType] = useState<'sale' | 'rent'>('sale');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -65,7 +67,12 @@ export function AdminPage() {
   async function runParser() {
     setParserRunning(true);
     try {
-      const { data } = await api.post('/api/parser/run', { source: parserSource, limit: parserLimit });
+      const payload: Record<string, unknown> = { source: parserSource, limit: parserLimit };
+      if (parserSource === 'avito') {
+        payload.city = parserCity;
+        payload.dealType = parserDealType;
+      }
+      const { data } = await api.post('/api/parser/run', payload);
       toast.success(`Парсер завершён: сохранено ${data.saved}, пропущено ${data.skipped}`);
       await loadData();
     } catch (err: any) {
@@ -119,18 +126,55 @@ export function AdminPage() {
             <select
               value={parserSource}
               onChange={(e) => setParserSource(e.target.value as any)}
-              className="input-base text-sm w-36"
+              className="input-base text-sm w-40"
             >
               <option value="demo">Demo генератор</option>
               <option value="csv">CSV файл</option>
+              <option value="avito">Авито</option>
             </select>
           </div>
+
+          {parserSource === 'avito' && (
+            <>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Город (slug)</label>
+                <select
+                  value={parserCity}
+                  onChange={(e) => setParserCity(e.target.value)}
+                  className="input-base text-sm w-52"
+                >
+                  <option value="nizhniy_novgorod">Нижний Новгород</option>
+                  <option value="moskva">Москва</option>
+                  <option value="sankt-peterburg">Санкт-Петербург</option>
+                  <option value="kazan">Казань</option>
+                  <option value="novosibirsk">Новосибирск</option>
+                  <option value="ekaterinburg">Екатеринбург</option>
+                  <option value="samara">Самара</option>
+                  <option value="ufa">Уфа</option>
+                  <option value="krasnoyarsk">Красноярск</option>
+                  <option value="perm">Пермь</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Тип сделки</label>
+                <select
+                  value={parserDealType}
+                  onChange={(e) => setParserDealType(e.target.value as any)}
+                  className="input-base text-sm w-32"
+                >
+                  <option value="sale">Продажа</option>
+                  <option value="rent">Аренда</option>
+                </select>
+              </div>
+            </>
+          )}
+
           <div>
             <label className="block text-xs text-gray-500 mb-1">Количество</label>
             <input
               type="number"
               min={1}
-              max={100}
+              max={parserSource === 'avito' ? 50 : 100}
               value={parserLimit}
               onChange={(e) => setParserLimit(Number(e.target.value))}
               className="input-base text-sm w-24"
@@ -149,7 +193,11 @@ export function AdminPage() {
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2">
-          Demo генератор создаёт тестовые объявления. CSV импортирует из файла src/data/listings.csv
+          {parserSource === 'avito'
+            ? 'Авито: реальные объявления с сайта. Требует ~30–60 сек. Может быть заблокирован при частых запросах.'
+            : parserSource === 'csv'
+            ? 'CSV импортирует из файла src/data/listings.csv'
+            : 'Demo генератор создаёт тестовые объявления.'}
         </p>
       </div>
 

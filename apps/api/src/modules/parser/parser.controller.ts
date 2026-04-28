@@ -3,8 +3,8 @@ import { z } from 'zod';
 import * as parserService from './parser.service';
 
 const runParserSchema = z.object({
-  source: z.enum(['demo', 'csv']).default('demo'),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  source: z.enum(['demo', 'csv', 'avito']).default('demo'),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
   city: z.string().optional(),
   dealType: z.enum(['rent', 'sale']).optional(),
 });

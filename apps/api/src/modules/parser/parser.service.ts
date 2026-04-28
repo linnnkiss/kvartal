@@ -2,10 +2,11 @@ import { prisma } from '../../lib/prisma';
 import { ParsedListing } from './parsers/base.parser';
 import { DemoParser } from './parsers/demo.parser';
 import { CsvParser } from './parsers/csv.parser';
+import { AvitoParser } from './parsers/avito.parser';
 import { logger } from '../../lib/logger';
 
 interface RunParserOptions {
-  source?: 'demo' | 'csv';
+  source?: 'demo' | 'csv' | 'avito';
   limit?: number;
   city?: string;
   dealType?: 'rent' | 'sale';
@@ -14,7 +15,11 @@ interface RunParserOptions {
 export async function runParser(options: RunParserOptions = {}) {
   const { source = 'demo', limit = 20, city, dealType } = options;
 
-  const parser = source === 'csv' ? new CsvParser() : new DemoParser();
+  let parser;
+  if (source === 'csv') parser = new CsvParser();
+  else if (source === 'avito') parser = new AvitoParser();
+  else parser = new DemoParser();
+
   const listings = await parser.run({ limit, city, dealType });
 
   if (listings.length === 0) {
