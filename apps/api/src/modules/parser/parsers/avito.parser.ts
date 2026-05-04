@@ -80,7 +80,22 @@ function runBridge(url: string, limit: number): Promise<BridgeItem[]> {
     proc.on('close', (code) => {
       if (stderr.trim()) {
         console.warn('[avito-bridge] stderr:', stderr.trim());
+        try {
+          const errorPayload = JSON.parse(stderr.trim());
+          if (errorPayload?.error) {
+            reject(new Error(errorPayload.error));
+            return;
+          }
+        } catch {
+          // stderr may contain non-JSON diagnostics from Python dependencies.
+        }
       }
+
+      if (code && code !== 0) {
+        reject(new Error(`bridge exited with code ${code}`));
+        return;
+      }
+
       try {
         const data = JSON.parse(stdout.trim() || '[]');
         resolve(Array.isArray(data) ? data : []);
@@ -102,8 +117,10 @@ function runBridge(url: string, limit: number): Promise<BridgeItem[]> {
 
 export class AvitoParser extends ListingParser {
   readonly sourceName = 'avito';
+  lastError: string | null = null;
 
   protected async fetchListings(options: ParserOptions): Promise<ParsedListing[]> {
+    this.lastError = null;
     const citySlug = options.city || 'nizhniy_novgorod';
     const cityName = CITY_NAMES[citySlug] || citySlug;
     const dealType = options.dealType || 'sale';
@@ -123,11 +140,16 @@ export class AvitoParser extends ListingParser {
     try {
       raw = await runBridge(url, limit);
     } catch (err) {
-      console.error('[avito] bridge error:', (err as Error).message);
+      const message = (err as Error).message;
+      this.lastError = message === 'rate limited (429)'
+        ? 'Авито временно ограничил запросы (HTTP 429). Подождите несколько минут, смените город/тип сделки или попробуйте позже.'
+        : message;
+      console.error('[avito] bridge error:', message);
       return [];
     }
 
     if (raw.length === 0) {
+      this.lastError = 'Bridge не нашёл объявления в ответе Авито. Возможна капча, блокировка или изменение HTML-структуры страницы.';
       console.warn('[avito] Bridge вернул 0 объявлений');
       return [];
     }

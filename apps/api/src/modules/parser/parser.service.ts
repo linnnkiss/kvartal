@@ -23,7 +23,15 @@ export async function runParser(options: RunParserOptions = {}) {
   const listings = await parser.run({ limit, city, dealType });
 
   if (listings.length === 0) {
-    return { saved: 0, skipped: 0, total: 0, message: 'Парсер не вернул данных' };
+    return {
+      saved: 0,
+      skipped: 0,
+      total: 0,
+      source: parser.sourceName,
+      message: parser instanceof AvitoParser && parser.lastError
+        ? parser.lastError
+        : 'Парсер не вернул данных',
+    };
   }
 
   const result = await saveListings(listings);

@@ -73,7 +73,11 @@ export function AdminPage() {
         payload.dealType = parserDealType;
       }
       const { data } = await api.post('/api/parser/run', payload);
-      toast.success(`Парсер завершён: сохранено ${data.saved}, пропущено ${data.skipped}`);
+      if (data.total === 0 && data.message) {
+        toast.error(data.message);
+      } else {
+        toast.success(`Парсер завершён: сохранено ${data.saved}, пропущено ${data.skipped}`);
+      }
       await loadData();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Ошибка парсера');
