@@ -41,6 +41,9 @@ const PARSER_STATUS_CLASSES: Record<ParserRun['status'], string> = {
   failed: 'bg-red-100 text-red-700',
 };
 
+type AdminSortKey = 'createdAt' | 'price' | 'title' | 'status';
+type SortDirection = 'asc' | 'desc';
+
 export function AdminPage() {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -59,6 +62,8 @@ export function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkActionRunning, setBulkActionRunning] = useState(false);
+  const [sortKey, setSortKey] = useState<AdminSortKey>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) navigate('/');
@@ -123,6 +128,21 @@ export function AdminPage() {
       if (allFilteredSelected) return prev.filter((id) => !filteredIds.includes(id));
       return Array.from(new Set([...prev, ...filteredIds]));
     });
+  }
+
+  function changeSort(nextKey: AdminSortKey) {
+    if (sortKey === nextKey) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+
+    setSortKey(nextKey);
+    setSortDirection(nextKey === 'createdAt' ? 'desc' : 'asc');
+  }
+
+  function sortLabel(key: AdminSortKey) {
+    if (sortKey !== key) return '';
+    return sortDirection === 'asc' ? ' ↑' : ' ↓';
   }
 
   async function runBulkVisibility(isHidden: boolean) {
@@ -196,6 +216,13 @@ export function AdminPage() {
       (statusFilter === 'hidden' ? l.isHidden : !l.isHidden);
 
     return matchesSearch && matchesSource && matchesDeal && matchesStatus;
+  }).sort((a, b) => {
+    const direction = sortDirection === 'asc' ? 1 : -1;
+
+    if (sortKey === 'price') return (a.price - b.price) * direction;
+    if (sortKey === 'title') return a.title.localeCompare(b.title, 'ru') * direction;
+    if (sortKey === 'status') return (Number(a.isHidden) - Number(b.isHidden)) * direction;
+    return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * direction;
   });
   const filteredIds = filtered.map((listing) => listing.id);
   const allFilteredSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedIds.includes(id));
@@ -468,12 +495,28 @@ export function AdminPage() {
                     aria-label="Выбрать все отфильтрованные объявления"
                   />
                 </th>
-                <th className="text-left px-4 py-3 font-medium">Объявление</th>
+                <th className="text-left px-4 py-3 font-medium">
+                  <button onClick={() => changeSort('title')} className="hover:text-primary-600">
+                    Объявление{sortLabel('title')}
+                  </button>
+                </th>
                 <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Тип</th>
-                <th className="text-left px-4 py-3 font-medium">Цена</th>
+                <th className="text-left px-4 py-3 font-medium">
+                  <button onClick={() => changeSort('price')} className="hover:text-primary-600">
+                    Цена{sortLabel('price')}
+                  </button>
+                </th>
                 <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Источник</th>
-                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Дата</th>
-                <th className="text-left px-4 py-3 font-medium">Статус</th>
+                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">
+                  <button onClick={() => changeSort('createdAt')} className="hover:text-primary-600">
+                    Дата{sortLabel('createdAt')}
+                  </button>
+                </th>
+                <th className="text-left px-4 py-3 font-medium">
+                  <button onClick={() => changeSort('status')} className="hover:text-primary-600">
+                    Статус{sortLabel('status')}
+                  </button>
+                </th>
                 <th className="text-right px-4 py-3 font-medium">Действия</th>
               </tr>
             </thead>
