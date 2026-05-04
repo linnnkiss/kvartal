@@ -57,6 +57,8 @@ export function AdminPage() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [dealFilter, setDealFilter] = useState<'all' | 'sale' | 'rent'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkActionRunning, setBulkActionRunning] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) navigate('/');
@@ -73,6 +75,7 @@ export function AdminPage() {
       setListings(ls);
       setStats(st);
       setParserRuns(runsResponse.data);
+      setSelectedIds((prev) => prev.filter((id) => ls.some((listing) => listing.id === id)));
     } catch {
       toast.error('Ошибка загрузки данных');
     } finally {
@@ -97,9 +100,63 @@ export function AdminPage() {
     try {
       await deleteListing(id);
       setListings((prev) => prev.filter((l) => l.id !== id));
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
       toast.success('Удалено');
     } catch {
       toast.error('Ошибка удаления');
+    }
+  }
+
+  function toggleSelection(id: string) {
+    setSelectedIds((prev) => (
+      prev.includes(id)
+        ? prev.filter((selectedId) => selectedId !== id)
+        : [...prev, id]
+    ));
+  }
+
+  function toggleFilteredSelection() {
+    const filteredIds = filtered.map((listing) => listing.id);
+    const allFilteredSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedIds.includes(id));
+
+    setSelectedIds((prev) => {
+      if (allFilteredSelected) return prev.filter((id) => !filteredIds.includes(id));
+      return Array.from(new Set([...prev, ...filteredIds]));
+    });
+  }
+
+  async function runBulkVisibility(isHidden: boolean) {
+    if (selectedIds.length === 0) return;
+    setBulkActionRunning(true);
+    try {
+      await Promise.all(selectedIds.map((id) => updateListing(id, { isHidden } as any)));
+      setListings((prev) => prev.map((listing) => (
+        selectedIds.includes(listing.id) ? { ...listing, isHidden } : listing
+      )));
+      toast.success(isHidden ? 'Выбранные объявления скрыты' : 'Выбранные объявления опубликованы');
+      setSelectedIds([]);
+      await loadData();
+    } catch {
+      toast.error('Ошибка массового обновления');
+    } finally {
+      setBulkActionRunning(false);
+    }
+  }
+
+  async function runBulkDelete() {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Удалить выбранные объявления (${selectedIds.length})? Это действие необратимо.`)) return;
+    setBulkActionRunning(true);
+    try {
+      await Promise.all(selectedIds.map((id) => deleteListing(id)));
+      setListings((prev) => prev.filter((listing) => !selectedIds.includes(listing.id)));
+      toast.success('Выбранные объявления удалены');
+      setSelectedIds([]);
+      await loadData();
+    } catch {
+      toast.error('Ошибка массового удаления');
+    } finally {
+      setBulkActionRunning(false);
     }
   }
 
@@ -140,6 +197,8 @@ export function AdminPage() {
 
     return matchesSearch && matchesSource && matchesDeal && matchesStatus;
   });
+  const filteredIds = filtered.map((listing) => listing.id);
+  const allFilteredSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedIds.includes(id));
 
   if (authLoading || isLoading) return <Loader size="lg" />;
 
@@ -357,11 +416,58 @@ export function AdminPage() {
             </button>
           </div>
         </div>
+        {selectedIds.length > 0 && (
+          <div className="px-4 py-3 border-b border-gray-100 bg-primary-50 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm font-medium text-primary-700">
+              Выбрано: {selectedIds.length}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => runBulkVisibility(true)}
+                disabled={bulkActionRunning}
+                className="px-3 py-2 rounded-lg bg-white border border-primary-100 text-xs font-medium text-gray-700 hover:text-primary-700 hover:border-primary-200 disabled:opacity-50"
+              >
+                Скрыть
+              </button>
+              <button
+                onClick={() => runBulkVisibility(false)}
+                disabled={bulkActionRunning}
+                className="px-3 py-2 rounded-lg bg-white border border-primary-100 text-xs font-medium text-gray-700 hover:text-primary-700 hover:border-primary-200 disabled:opacity-50"
+              >
+                Опубликовать
+              </button>
+              <button
+                onClick={runBulkDelete}
+                disabled={bulkActionRunning}
+                className="px-3 py-2 rounded-lg bg-white border border-red-100 text-xs font-medium text-red-600 hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
+              >
+                Удалить
+              </button>
+              <button
+                onClick={() => setSelectedIds([])}
+                disabled={bulkActionRunning}
+                className="px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              >
+                Сбросить
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                <th className="text-left px-4 py-3 font-medium w-10">
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={toggleFilteredSelection}
+                    disabled={filtered.length === 0}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-40"
+                    aria-label="Выбрать все отфильтрованные объявления"
+                  />
+                </th>
                 <th className="text-left px-4 py-3 font-medium">Объявление</th>
                 <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Тип</th>
                 <th className="text-left px-4 py-3 font-medium">Цена</th>
@@ -374,6 +480,15 @@ export function AdminPage() {
             <tbody className="divide-y divide-gray-50">
               {filtered.map((listing) => (
                 <tr key={listing.id} className={`hover:bg-gray-50 ${listing.isHidden ? 'opacity-60' : ''}`}>
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(listing.id)}
+                      onChange={() => toggleSelection(listing.id)}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      aria-label={`Выбрать объявление ${listing.title}`}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <a
                       href={`/listings/${listing.id}`}
