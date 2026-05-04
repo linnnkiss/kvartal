@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
+import { InstallAppPrompt } from './components/pwa/InstallAppPrompt';
 import { HomePage } from './pages/HomePage';
 import { ListingsPage } from './pages/ListingsPage';
 import { ListingDetailsPage } from './pages/ListingDetailsPage';
@@ -29,6 +30,7 @@ export default function App() {
           </Routes>
         </main>
         <Footer />
+        <InstallAppPrompt />
       </div>
     </AuthProvider>
   );
