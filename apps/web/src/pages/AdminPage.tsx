@@ -54,6 +54,9 @@ export function AdminPage() {
   const [parserCity, setParserCity] = useState('nizhniy_novgorod');
   const [parserDealType, setParserDealType] = useState<'sale' | 'rent'>('sale');
   const [search, setSearch] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [dealFilter, setDealFilter] = useState<'all' | 'sale' | 'rent'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'visible' | 'hidden'>('all');
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) navigate('/');
@@ -122,11 +125,21 @@ export function AdminPage() {
     }
   }
 
-  const filtered = listings.filter((l) =>
-    !search ||
-    l.title.toLowerCase().includes(search.toLowerCase()) ||
-    l.city.toLowerCase().includes(search.toLowerCase())
-  );
+  const sourceOptions = Array.from(new Set(listings.map((listing) => listing.sourceName || 'manual'))).sort();
+
+  const filtered = listings.filter((l) => {
+    const matchesSearch =
+      !search ||
+      l.title.toLowerCase().includes(search.toLowerCase()) ||
+      l.city.toLowerCase().includes(search.toLowerCase());
+    const matchesSource = sourceFilter === 'all' || (l.sourceName || 'manual') === sourceFilter;
+    const matchesDeal = dealFilter === 'all' || l.dealType === dealFilter;
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'hidden' ? l.isHidden : !l.isHidden);
+
+    return matchesSearch && matchesSource && matchesDeal && matchesStatus;
+  });
 
   if (authLoading || isLoading) return <Loader size="lg" />;
 
@@ -299,15 +312,46 @@ export function AdminPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-3">
-          <h2 className="font-semibold text-gray-800">Все объявления ({listings.length})</h2>
-          <div className="flex items-center gap-2">
+        <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-semibold text-gray-800">Все объявления ({filtered.length} из {listings.length})</h2>
+          <div className="flex flex-wrap items-center gap-2">
             <input
               className="input-base text-sm w-48"
               placeholder="Поиск..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="input-base text-sm w-40"
+              title="Источник"
+            >
+              <option value="all">Все источники</option>
+              {sourceOptions.map((source) => (
+                <option key={source} value={source}>{source === 'manual' ? 'Вручную' : source}</option>
+              ))}
+            </select>
+            <select
+              value={dealFilter}
+              onChange={(e) => setDealFilter(e.target.value as typeof dealFilter)}
+              className="input-base text-sm w-36"
+              title="Тип сделки"
+            >
+              <option value="all">Все типы</option>
+              <option value="sale">Продажа</option>
+              <option value="rent">Аренда</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+              className="input-base text-sm w-36"
+              title="Статус"
+            >
+              <option value="all">Все статусы</option>
+              <option value="visible">Активные</option>
+              <option value="hidden">Скрытые</option>
+            </select>
             <button onClick={loadData} className="text-gray-400 hover:text-primary-600">
               <RefreshCw className="w-4 h-4" />
             </button>
