@@ -195,7 +195,7 @@ export function FiltersSidebar({ filters, onChange, total }: FiltersSidebarProps
   return (
     <>
       <button
-        className="md:hidden flex items-center gap-2 btn-outline text-sm mb-4"
+        className="md:hidden flex items-center justify-center gap-2 btn-outline text-sm mb-4 w-full py-3"
         onClick={() => setMobileOpen(true)}
       >
         <SlidersHorizontal className="w-4 h-4" />
@@ -205,8 +205,8 @@ export function FiltersSidebar({ filters, onChange, total }: FiltersSidebarProps
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-80 bg-white p-5 overflow-y-auto shadow-xl">
-            <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600" onClick={() => setMobileOpen(false)}>
+          <div className="absolute left-0 right-0 bottom-0 max-h-[88vh] bg-white p-5 overflow-y-auto shadow-xl rounded-t-2xl pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+            <button className="absolute top-4 right-4 min-h-10 min-w-10 text-gray-400 hover:text-gray-600" onClick={() => setMobileOpen(false)}>
               <X className="w-5 h-5" />
             </button>
             {content}

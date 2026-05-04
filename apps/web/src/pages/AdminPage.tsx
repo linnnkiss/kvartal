@@ -230,14 +230,14 @@ export function AdminPage() {
   if (authLoading || isLoading) return <Loader size="lg" />;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-5 sm:mb-6 flex items-center gap-2">
         <ShieldCheck className="w-6 h-6 text-amber-500" />
         Панель администратора
       </h1>
 
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3 mb-6 sm:mb-8">
           {[
             { label: 'Всего', value: stats.total, icon: Home, color: 'primary' },
             { label: 'Продажа', value: stats.sale, icon: TrendingUp, color: 'emerald' },
@@ -245,7 +245,7 @@ export function AdminPage() {
             { label: 'Скрытых', value: stats.hidden, icon: EyeOff, color: 'red' },
             { label: 'Пользователей', value: stats.users, icon: Users, color: 'violet' },
           ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className={`bg-white rounded-xl border border-gray-100 p-4 shadow-sm`}>
+            <div key={label} className={`bg-white rounded-xl border border-gray-100 p-3 sm:p-4 shadow-sm`}>
               <div className={`text-${color}-500 mb-1`}><Icon className="w-4 h-4" /></div>
               <div className="text-2xl font-bold text-gray-800">{value}</div>
               <div className="text-xs text-gray-400">{label}</div>
@@ -254,18 +254,18 @@ export function AdminPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm mb-8">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm mb-6 sm:mb-8">
         <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Play className="w-4 h-4 text-primary-600" />
           Запуск парсера
         </h2>
-        <div className="flex flex-wrap gap-3 items-end">
-          <div>
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-3 items-end">
+          <div className="min-w-0">
             <label className="block text-xs text-gray-500 mb-1">Источник</label>
             <select
               value={parserSource}
               onChange={(e) => setParserSource(e.target.value as any)}
-              className="input-base text-sm w-40"
+              className="input-base text-sm sm:w-40"
             >
               <option value="demo">Demo генератор</option>
               <option value="csv">CSV файл</option>
@@ -275,12 +275,12 @@ export function AdminPage() {
 
           {parserSource === 'avito' && (
             <>
-              <div>
+              <div className="min-w-0">
                 <label className="block text-xs text-gray-500 mb-1">Город (slug)</label>
                 <select
                   value={parserCity}
                   onChange={(e) => setParserCity(e.target.value)}
-                  className="input-base text-sm w-52"
+                  className="input-base text-sm sm:w-52"
                 >
                   <option value="nizhniy_novgorod">Нижний Новгород</option>
                   <option value="moskva">Москва</option>
@@ -294,12 +294,12 @@ export function AdminPage() {
                   <option value="perm">Пермь</option>
                 </select>
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="block text-xs text-gray-500 mb-1">Тип сделки</label>
                 <select
                   value={parserDealType}
                   onChange={(e) => setParserDealType(e.target.value as any)}
-                  className="input-base text-sm w-32"
+                  className="input-base text-sm sm:w-32"
                 >
                   <option value="sale">Продажа</option>
                   <option value="rent">Аренда</option>
@@ -308,7 +308,7 @@ export function AdminPage() {
             </>
           )}
 
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs text-gray-500 mb-1">Количество</label>
             <input
               type="number"
@@ -316,13 +316,13 @@ export function AdminPage() {
               max={parserSource === 'avito' ? 50 : 100}
               value={parserLimit}
               onChange={(e) => setParserLimit(Number(e.target.value))}
-              className="input-base text-sm w-24"
+              className="input-base text-sm sm:w-24"
             />
           </div>
           <button
             onClick={runParser}
             disabled={parserRunning}
-            className="btn-primary flex items-center gap-2 text-sm"
+            className="btn-primary flex items-center justify-center gap-2 text-sm py-3 sm:py-2"
           >
             {parserRunning ? (
               <><RefreshCw className="w-4 h-4 animate-spin" /> Парсинг...</>
@@ -347,7 +347,41 @@ export function AdminPage() {
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
-        <div className="overflow-x-auto">
+        <div className="md:hidden divide-y divide-gray-50">
+          {parserRuns.map((run) => (
+            <div key={run.id} className="p-4">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <div className="font-medium text-gray-800">{run.source}</div>
+                  <div className="text-xs text-gray-400">
+                    {new Intl.DateTimeFormat('ru-RU', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }).format(new Date(run.startedAt))}
+                  </div>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PARSER_STATUS_CLASSES[run.status]}`}>
+                  {PARSER_STATUS_LABELS[run.status]}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500">
+                {[run.city, run.dealType ? DEAL_TYPE_LABELS[run.dealType] : null, `лимит ${run.requestedLimit}`]
+                  .filter(Boolean)
+                  .join(' · ') || 'Параметры не заданы'}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Обработано {run.total}, сохранено {run.saved}, пропущено {run.skipped}
+              </div>
+              {run.message && <div className="text-xs text-gray-400 mt-2 line-clamp-2">{run.message}</div>}
+            </div>
+          ))}
+          {parserRuns.length === 0 && (
+            <div className="text-center py-10 text-gray-400 text-sm">Запусков пока нет</div>
+          )}
+        </div>
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
@@ -400,9 +434,9 @@ export function AdminPage() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-semibold text-gray-800">Все объявления ({filtered.length} из {listings.length})</h2>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full lg:w-auto">
             <input
-              className="input-base text-sm w-48"
+              className="input-base text-sm sm:w-48"
               placeholder="Поиск..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -410,7 +444,7 @@ export function AdminPage() {
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              className="input-base text-sm w-40"
+              className="input-base text-sm sm:w-40"
               title="Источник"
             >
               <option value="all">Все источники</option>
@@ -421,7 +455,7 @@ export function AdminPage() {
             <select
               value={dealFilter}
               onChange={(e) => setDealFilter(e.target.value as typeof dealFilter)}
-              className="input-base text-sm w-36"
+              className="input-base text-sm sm:w-36"
               title="Тип сделки"
             >
               <option value="all">Все типы</option>
@@ -431,14 +465,14 @@ export function AdminPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-              className="input-base text-sm w-36"
+              className="input-base text-sm sm:w-36"
               title="Статус"
             >
               <option value="all">Все статусы</option>
               <option value="visible">Активные</option>
               <option value="hidden">Скрытые</option>
             </select>
-            <button onClick={loadData} className="text-gray-400 hover:text-primary-600">
+            <button onClick={loadData} className="hidden sm:flex text-gray-400 hover:text-primary-600">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
@@ -481,7 +515,67 @@ export function AdminPage() {
           </div>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="md:hidden divide-y divide-gray-50">
+          {filtered.map((listing) => (
+            <div key={listing.id} className={`p-4 ${listing.isHidden ? 'opacity-70' : ''}`}>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(listing.id)}
+                  onChange={() => toggleSelection(listing.id)}
+                  className="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  aria-label={`Выбрать объявление ${listing.title}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <a
+                    href={`/listings/${listing.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-gray-800 hover:text-primary-600 line-clamp-2"
+                  >
+                    {listing.title}
+                  </a>
+                  <div className="text-xs text-gray-400 mt-1 truncate">{listing.city}</div>
+                  <div className="mt-2 font-semibold text-gray-900">{formatPrice(listing.price)}</div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      listing.dealType === 'rent' ? 'bg-cyan-100 text-cyan-700' : 'bg-primary-100 text-primary-700'
+                    }`}>
+                      {DEAL_TYPE_LABELS[listing.dealType]}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      listing.isHidden ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {listing.isHidden ? 'Скрыто' : 'Активно'}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                      {listing.sourceName || 'Вручную'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 mt-3">
+                <button
+                  onClick={() => toggleVisibility(listing)}
+                  className="px-3 py-2 rounded-lg text-xs font-medium text-gray-600 bg-gray-50 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  {listing.isHidden ? 'Опубликовать' : 'Скрыть'}
+                </button>
+                <button
+                  onClick={() => handleDelete(listing.id)}
+                  className="px-3 py-2 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <div className="text-center py-10 text-gray-400 text-sm">Объявления не найдены</div>
+          )}
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">

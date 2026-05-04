@@ -44,13 +44,13 @@ export function HomePage() {
 
   return (
     <div>
-      <section className="bg-gradient-to-br from-primary-700 via-primary-600 to-indigo-700 text-white py-20 px-4">
+      <section className="bg-gradient-to-br from-primary-700 via-primary-600 to-indigo-700 text-white px-3 py-10 sm:px-4 sm:py-20">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Building2 className="w-10 h-10 opacity-90" />
-            <h1 className="text-4xl md:text-5xl font-bold">Квартал</h1>
+          <div className="flex items-center justify-center gap-3 mb-3 sm:mb-4">
+            <Building2 className="w-8 h-8 sm:w-10 sm:h-10 opacity-90" />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">Квартал</h1>
           </div>
-          <p className="text-primary-100 text-lg mb-10">Найдите идеальную квартиру для покупки или аренды</p>
+          <p className="text-primary-100 text-base sm:text-lg mb-7 sm:mb-10">Найдите идеальную квартиру для покупки или аренды</p>
 
           <div className="bg-white rounded-2xl p-2 shadow-2xl">
             <div className="flex rounded-xl overflow-hidden border border-gray-100 mb-2">
@@ -67,11 +67,11 @@ export function HomePage() {
               ))}
             </div>
 
-            <form onSubmit={handleSearch} className="flex gap-2">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
               <select
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 min-w-[140px]"
+                className="border border-gray-200 rounded-xl px-3 py-3 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-400 sm:min-w-[140px]"
               >
                 <option value="">Все города</option>
                 {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -89,7 +89,7 @@ export function HomePage() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary px-6 rounded-xl text-sm whitespace-nowrap">
+              <button type="submit" className="btn-primary px-6 py-3 rounded-xl text-sm whitespace-nowrap">
                 Найти
               </button>
             </form>
@@ -97,11 +97,11 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 py-8 sm:py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-12">
           <button
             onClick={() => navigate('/listings?dealType=sale')}
-            className="flex items-center gap-4 p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all text-left"
+            className="flex items-center gap-4 p-4 sm:p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all text-left"
           >
             <div className="bg-primary-100 rounded-xl p-3">
               <Home className="w-6 h-6 text-primary-600" />
@@ -114,7 +114,7 @@ export function HomePage() {
 
           <button
             onClick={() => navigate('/listings?dealType=rent')}
-            className="flex items-center gap-4 p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-cyan-200 transition-all text-left"
+            className="flex items-center gap-4 p-4 sm:p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-cyan-200 transition-all text-left"
           >
             <div className="bg-cyan-100 rounded-xl p-3">
               <Key className="w-6 h-6 text-cyan-600" />
@@ -127,7 +127,7 @@ export function HomePage() {
 
           <button
             onClick={() => navigate('/listings?propertyType=newbuilding')}
-            className="flex items-center gap-4 p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left"
+            className="flex items-center gap-4 p-4 sm:p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left"
           >
             <div className="bg-emerald-100 rounded-xl p-3">
               <Building2 className="w-6 h-6 text-emerald-600" />
@@ -154,7 +154,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 pb-12 sm:pb-16">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-800">Свежие объявления</h2>
           <button onClick={() => navigate('/listings')} className="text-sm text-primary-600 hover:underline">

@@ -16,10 +16,10 @@ export function Header() {
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 text-primary-600 font-bold text-xl">
-            <Building2 className="w-7 h-7" />
+      <div className="max-w-7xl mx-auto px-3 sm:px-6">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          <Link to="/" className="flex items-center gap-2 text-primary-600 font-bold text-lg sm:text-xl">
+            <Building2 className="w-6 h-6 sm:w-7 sm:h-7" />
             <span>Квартал</span>
           </Link>
 
@@ -59,7 +59,7 @@ export function Header() {
           </div>
 
           <button
-            className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+            className="md:hidden min-h-11 min-w-11 p-2 rounded-lg text-gray-500 hover:bg-gray-100"
             onClick={() => setMobileOpen((v) => !v)}
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -67,21 +67,21 @@ export function Header() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 space-y-2">
-            <Link to="/listings?dealType=sale" className="block px-2 py-2 text-gray-700 hover:text-primary-600" onClick={() => setMobileOpen(false)}>Купить</Link>
-            <Link to="/listings?dealType=rent" className="block px-2 py-2 text-gray-700 hover:text-primary-600" onClick={() => setMobileOpen(false)}>Снять</Link>
-            <Link to="/listings?propertyType=newbuilding" className="block px-2 py-2 text-gray-700 hover:text-primary-600" onClick={() => setMobileOpen(false)}>Новостройки</Link>
+          <div className="md:hidden py-3 border-t border-gray-100 space-y-1">
+            <Link to="/listings?dealType=sale" className="block px-2 py-3 text-gray-700 hover:text-primary-600" onClick={() => setMobileOpen(false)}>Купить</Link>
+            <Link to="/listings?dealType=rent" className="block px-2 py-3 text-gray-700 hover:text-primary-600" onClick={() => setMobileOpen(false)}>Снять</Link>
+            <Link to="/listings?propertyType=newbuilding" className="block px-2 py-3 text-gray-700 hover:text-primary-600" onClick={() => setMobileOpen(false)}>Новостройки</Link>
             {user ? (
               <>
-                {isAdmin && <Link to="/admin" className="block px-2 py-2 text-amber-600" onClick={() => setMobileOpen(false)}>Админ-панель</Link>}
-                <Link to="/favorites" className="block px-2 py-2 text-gray-700" onClick={() => setMobileOpen(false)}>Избранное</Link>
-                <Link to="/profile" className="block px-2 py-2 text-gray-700" onClick={() => setMobileOpen(false)}>Профиль</Link>
-                <button onClick={handleLogout} className="block px-2 py-2 text-red-500 text-left w-full">Выйти</button>
+                {isAdmin && <Link to="/admin" className="block px-2 py-3 text-amber-600" onClick={() => setMobileOpen(false)}>Админ-панель</Link>}
+                <Link to="/favorites" className="block px-2 py-3 text-gray-700" onClick={() => setMobileOpen(false)}>Избранное</Link>
+                <Link to="/profile" className="block px-2 py-3 text-gray-700" onClick={() => setMobileOpen(false)}>Профиль</Link>
+                <button onClick={handleLogout} className="block px-2 py-3 text-red-500 text-left w-full">Выйти</button>
               </>
             ) : (
               <>
-                <Link to="/login" className="block px-2 py-2 text-gray-700" onClick={() => setMobileOpen(false)}>Войти</Link>
-                <Link to="/register" className="block px-2 py-2 text-primary-600 font-medium" onClick={() => setMobileOpen(false)}>Регистрация</Link>
+                <Link to="/login" className="block px-2 py-3 text-gray-700" onClick={() => setMobileOpen(false)}>Войти</Link>
+                <Link to="/register" className="block px-2 py-3 text-primary-600 font-medium" onClick={() => setMobileOpen(false)}>Регистрация</Link>
               </>
             )}
           </div>

@@ -56,7 +56,7 @@ export function ListingCard({ listing, isFavorite = false, onFavoriteToggle }: L
         <img
           src={image}
           alt={listing.title}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-52 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
           loading="lazy"
         />
@@ -76,7 +76,7 @@ export function ListingCard({ listing, isFavorite = false, onFavoriteToggle }: L
       </div>
 
       <div className="p-4">
-        <div className="text-xl font-bold text-gray-900 mb-1">{formatPrice(listing.price)}</div>
+        <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{formatPrice(listing.price)}</div>
         {listing.dealType === 'rent' && <span className="text-xs text-gray-400">/мес.</span>}
 
         <p className="text-sm text-gray-700 font-medium mt-1 line-clamp-2">{listing.title}</p>

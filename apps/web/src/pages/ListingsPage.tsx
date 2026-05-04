@@ -84,8 +84,8 @@ export function ListingsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
         <div className="flex-1 flex items-center border border-gray-200 rounded-xl px-3 gap-2 focus-within:ring-2 focus-within:ring-primary-400 bg-white shadow-sm">
           <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <input
@@ -96,10 +96,10 @@ export function ListingsPage() {
             className="flex-1 py-2.5 text-sm outline-none bg-transparent"
           />
         </div>
-        <button type="submit" className="btn-primary px-5 rounded-xl text-sm">Найти</button>
+        <button type="submit" className="btn-primary px-5 py-3 rounded-xl text-sm">Найти</button>
       </form>
 
-      <div className="flex gap-6">
+      <div className="md:flex gap-6">
         <FiltersSidebar
           filters={filters}
           onChange={handleFiltersChange}
