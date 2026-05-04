@@ -18,3 +18,12 @@ export async function runParser(req: Request, res: Response, next: NextFunction)
     next(err);
   }
 }
+
+export async function getParserRuns(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const runs = await parserService.getParserRuns();
+    res.json(runs);
+  } catch (err) {
+    next(err);
+  }
+}

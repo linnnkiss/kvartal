@@ -5,4 +5,5 @@ import * as parserController from './parser.controller';
 
 export const parserRouter = Router();
 
+parserRouter.get('/runs', authMiddleware, adminMiddleware, parserController.getParserRuns);
 parserRouter.post('/run', authMiddleware, adminMiddleware, parserRateLimiter, parserController.runParser);

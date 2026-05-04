@@ -10,12 +10,43 @@ import api from '../lib/axios';
 import toast from 'react-hot-toast';
 
 interface Stats { total: number; rent: number; sale: number; hidden: number; users: number }
+interface ParserRun {
+  id: string;
+  source: string;
+  city: string | null;
+  dealType: 'sale' | 'rent' | null;
+  requestedLimit: number;
+  total: number;
+  saved: number;
+  skipped: number;
+  status: 'running' | 'success' | 'empty' | 'skipped' | 'failed';
+  message: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+const PARSER_STATUS_LABELS: Record<ParserRun['status'], string> = {
+  running: 'В работе',
+  success: 'Успешно',
+  empty: 'Нет данных',
+  skipped: 'Пропущено',
+  failed: 'Ошибка',
+};
+
+const PARSER_STATUS_CLASSES: Record<ParserRun['status'], string> = {
+  running: 'bg-blue-100 text-blue-700',
+  success: 'bg-green-100 text-green-700',
+  empty: 'bg-amber-100 text-amber-700',
+  skipped: 'bg-gray-100 text-gray-600',
+  failed: 'bg-red-100 text-red-700',
+};
 
 export function AdminPage() {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [listings, setListings] = useState<Listing[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [parserRuns, setParserRuns] = useState<ParserRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [parserRunning, setParserRunning] = useState(false);
   const [parserSource, setParserSource] = useState<'demo' | 'csv' | 'avito'>('demo');
@@ -31,9 +62,14 @@ export function AdminPage() {
   async function loadData() {
     setIsLoading(true);
     try {
-      const [ls, st] = await Promise.all([fetchAdminListings(), fetchStats()]);
+      const [ls, st, runsResponse] = await Promise.all([
+        fetchAdminListings(),
+        fetchStats(),
+        api.get<ParserRun[]>('/api/parser/runs'),
+      ]);
       setListings(ls);
       setStats(st);
+      setParserRuns(runsResponse.data);
     } catch {
       toast.error('Ошибка загрузки данных');
     } finally {
@@ -203,6 +239,63 @@ export function AdminPage() {
             ? 'CSV импортирует из файла src/data/listings.csv'
             : 'Demo генератор создаёт тестовые объявления.'}
         </p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-8">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-3">
+          <h2 className="font-semibold text-gray-800">История запусков парсера</h2>
+          <button onClick={loadData} className="text-gray-400 hover:text-primary-600" title="Обновить">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                <th className="text-left px-4 py-3 font-medium">Дата</th>
+                <th className="text-left px-4 py-3 font-medium">Источник</th>
+                <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Параметры</th>
+                <th className="text-left px-4 py-3 font-medium">Результат</th>
+                <th className="text-left px-4 py-3 font-medium">Статус</th>
+                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Сообщение</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {parserRuns.map((run) => (
+                <tr key={run.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                    {new Intl.DateTimeFormat('ru-RU', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }).format(new Date(run.startedAt))}
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-800">{run.source}</td>
+                  <td className="px-4 py-3 hidden md:table-cell text-xs text-gray-500">
+                    {[run.city, run.dealType ? DEAL_TYPE_LABELS[run.dealType] : null, `лимит ${run.requestedLimit}`]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                    {run.total} / {run.saved} / {run.skipped}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PARSER_STATUS_CLASSES[run.status]}`}>
+                      {PARSER_STATUS_LABELS[run.status]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell text-xs text-gray-400 max-w-sm truncate">
+                    {run.message || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {parserRuns.length === 0 && (
+            <div className="text-center py-10 text-gray-400 text-sm">Запусков пока нет</div>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">

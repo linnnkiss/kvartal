@@ -20,22 +20,70 @@ export async function runParser(options: RunParserOptions = {}) {
   else if (source === 'avito') parser = new AvitoParser();
   else parser = new DemoParser();
 
-  const listings = await parser.run({ limit, city, dealType });
-
-  if (listings.length === 0) {
-    return {
-      saved: 0,
-      skipped: 0,
-      total: 0,
+  const parserRun = await prisma.parserRun.create({
+    data: {
       source: parser.sourceName,
-      message: parser instanceof AvitoParser && parser.lastError
-        ? parser.lastError
-        : 'Парсер не вернул данных',
-    };
-  }
+      city,
+      dealType,
+      requestedLimit: limit,
+      status: 'running',
+    },
+  });
 
-  const result = await saveListings(listings);
-  return { ...result, total: listings.length, source: parser.sourceName };
+  try {
+    const listings = await parser.run({ limit, city, dealType });
+
+    if (listings.length === 0) {
+      const message = parser instanceof AvitoParser && parser.lastError
+        ? parser.lastError
+        : 'Парсер не вернул данных';
+      const result = { saved: 0, skipped: 0, total: 0, source: parser.sourceName, message };
+
+      await prisma.parserRun.update({
+        where: { id: parserRun.id },
+        data: {
+          ...result,
+          status: 'empty',
+          finishedAt: new Date(),
+        },
+      });
+
+      return result;
+    }
+
+    const result = await saveListings(listings);
+    const response = { ...result, total: listings.length, source: parser.sourceName };
+
+    await prisma.parserRun.update({
+      where: { id: parserRun.id },
+      data: {
+        ...response,
+        status: result.saved > 0 ? 'success' : 'skipped',
+        message: result.saved > 0 ? null : 'Все найденные объявления уже были импортированы или пропущены',
+        finishedAt: new Date(),
+      },
+    });
+
+    return response;
+  } catch (err) {
+    const message = (err as Error).message || 'Ошибка парсера';
+    await prisma.parserRun.update({
+      where: { id: parserRun.id },
+      data: {
+        status: 'failed',
+        message,
+        finishedAt: new Date(),
+      },
+    });
+    throw err;
+  }
+}
+
+export async function getParserRuns(limit = 10) {
+  return prisma.parserRun.findMany({
+    orderBy: { startedAt: 'desc' },
+    take: limit,
+  });
 }
 
 async function saveListings(listings: ParsedListing[]) {
