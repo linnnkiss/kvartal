@@ -153,11 +153,20 @@ function extractOffers(html: string): YandexOffer[] {
   if (arrEnd < 0) return [];
 
   const rawArray = html.slice(arrStart, arrEnd + 1);
-  const decoded = JSON.parse(
-    `"${rawArray.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`,
-  ) as string;
 
-  return JSON.parse(decoded) as YandexOffer[];
+  try {
+    return JSON.parse(rawArray) as YandexOffer[];
+  } catch {
+    try {
+      const decoded = JSON.parse(
+        `"${rawArray.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`,
+      ) as string;
+
+      return JSON.parse(decoded) as YandexOffer[];
+    } catch {
+      return [];
+    }
+  }
 }
 
 async function fetchPage(citySlug: string, dealType: 'rent' | 'sale', page: number) {
