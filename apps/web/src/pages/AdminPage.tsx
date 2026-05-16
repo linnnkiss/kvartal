@@ -191,7 +191,7 @@ export function AdminPage() {
     setParserRunning(true);
     try {
       const payload: Record<string, unknown> = { source: parserSource, limit: parserLimit };
-      if (parserSource === 'avito') {
+      if (parserSource === 'avito' || parserSource === 'yandex') {
         payload.city = parserCity;
         payload.dealType = parserDealType;
       }
