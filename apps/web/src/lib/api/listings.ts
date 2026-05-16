@@ -9,6 +9,17 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Listi
   return data;
 }
 
+export async function fetchListingCities(filters: ListingFilters = {}): Promise<string[]> {
+  const params = Object.fromEntries(
+    Object.entries(filters).filter(([, v]) => v !== undefined && v !== '' && v !== null)
+  );
+  delete params.city;
+  delete params.page;
+  delete params.limit;
+  const { data } = await api.get('/api/listings/meta/cities', { params });
+  return data;
+}
+
 export async function fetchListingById(id: string): Promise<Listing> {
   const { data } = await api.get(`/api/listings/${id}`);
   return data;

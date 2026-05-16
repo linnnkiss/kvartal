@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import type { Listing, ListingFilters, ListingsResponse } from '@kvartal/shared';
-import { fetchListings } from '../lib/api/listings';
+import { fetchListingCities, fetchListings } from '../lib/api/listings';
 import { fetchFavoriteIds } from '../lib/api/favorites';
 import { ListingGrid } from '../components/listings/ListingGrid';
 import { FiltersSidebar } from '../components/listings/FiltersSidebar';
@@ -42,6 +42,7 @@ export function ListingsPage() {
   const { user } = useAuth();
   const [result, setResult] = useState<ListingsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [cityOptions, setCityOptions] = useState<string[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
 
@@ -62,6 +63,10 @@ export function ListingsPage() {
   useEffect(() => {
     load(filters);
   }, [searchParams.toString()]);
+
+  useEffect(() => {
+    fetchListingCities(filters).then(setCityOptions).catch(() => setCityOptions([]));
+  }, [filters.dealType, filters.propertyType, filters.rooms, filters.priceMin, filters.priceMax, filters.areaMin, filters.areaMax, filters.district, filters.search]);
 
   useEffect(() => {
     if (user) {
@@ -103,6 +108,7 @@ export function ListingsPage() {
         <FiltersSidebar
           filters={filters}
           onChange={handleFiltersChange}
+          cityOptions={cityOptions}
           total={result?.total}
         />
 

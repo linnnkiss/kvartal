@@ -5,6 +5,7 @@ import type { ListingFilters, DealType, PropertyType } from '@kvartal/shared';
 interface FiltersSidebarProps {
   filters: ListingFilters;
   onChange: (filters: ListingFilters) => void;
+  cityOptions: string[];
   total?: number;
 }
 
@@ -32,7 +33,7 @@ const PROPERTY_OPTIONS: { value: string; label: string }[] = [
   { value: 'house', label: 'Дом' },
 ];
 
-export function FiltersSidebar({ filters, onChange, total }: FiltersSidebarProps) {
+export function FiltersSidebar({ filters, onChange, cityOptions, total }: FiltersSidebarProps) {
   const [local, setLocal] = useState<ListingFilters>(filters);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -92,13 +93,16 @@ export function FiltersSidebar({ filters, onChange, total }: FiltersSidebarProps
 
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1.5">Город</label>
-        <input
+        <select
           className="input-base text-sm"
-          placeholder="Москва"
           value={local.city || ''}
           onChange={(e) => set('city', e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && apply()}
-        />
+        >
+          <option value="">Все города</option>
+          {cityOptions.map((city) => (
+            <option key={city} value={city}>{city}</option>
+          ))}
+        </select>
       </div>
 
       <div>

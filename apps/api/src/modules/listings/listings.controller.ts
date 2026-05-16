@@ -23,6 +23,17 @@ export async function getListingById(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function getAvailableCities(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const query = listingQuerySchema.parse(req.query);
+    if (query.showAll && req.user?.role !== 'admin') delete query.showAll;
+    const cities = await listingsService.getAvailableCities(query);
+    res.json(cities);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function createListing(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const data = createListingSchema.parse(req.body);

@@ -5,6 +5,7 @@ import * as listingsController from './listings.controller';
 export const listingsRouter = Router();
 
 listingsRouter.get('/', optionalAuth, listingsController.getListings);
+listingsRouter.get('/meta/cities', optionalAuth, listingsController.getAvailableCities);
 listingsRouter.get('/admin/all', authMiddleware, adminMiddleware, listingsController.getAdminListings);
 listingsRouter.get('/admin/stats', authMiddleware, adminMiddleware, listingsController.getStats);
 listingsRouter.get('/:id', listingsController.getListingById);

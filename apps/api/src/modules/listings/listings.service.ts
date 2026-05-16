@@ -8,8 +8,8 @@ type ListingQuery = z.infer<typeof listingQuerySchema>;
 const AUTHOR_SELECT = { id: true, name: true, phone: true, email: true } as const;
 const PARSER_SOURCE_NAMES = ['yandex', 'avito', 'csv-import'] as const;
 
-export async function getListings(query: ListingQuery) {
-  const { city, district, dealType, propertyType, rooms, priceMin, priceMax, areaMin, areaMax, sortBy, page, limit, search, showAll } = query;
+function buildListingWhere(query: ListingQuery) {
+  const { city, district, dealType, propertyType, rooms, priceMin, priceMax, areaMin, areaMax, search, showAll } = query;
 
   const where: Prisma.ListingWhereInput = {
     sourceName: { in: [...PARSER_SOURCE_NAMES] },
@@ -43,6 +43,13 @@ export async function getListings(query: ListingQuery) {
     ];
   }
 
+  return where;
+}
+
+export async function getListings(query: ListingQuery) {
+  const { sortBy, page, limit } = query;
+  const where = buildListingWhere(query);
+
   const orderByMap: Record<string, Prisma.ListingOrderByWithRelationInput> = {
     price_asc: { price: 'asc' },
     price_desc: { price: 'desc' },
@@ -62,6 +69,18 @@ export async function getListings(query: ListingQuery) {
   ]);
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getAvailableCities(query: ListingQuery) {
+  const where = buildListingWhere({ ...query, city: undefined, page: 1, limit: 50 });
+  const rows = await prisma.listing.findMany({
+    where,
+    distinct: ['city'],
+    select: { city: true },
+    orderBy: { city: 'asc' },
+  });
+
+  return rows.map((row) => row.city).filter(Boolean);
 }
 
 export async function getListingById(id: string, includeHidden = false) {
