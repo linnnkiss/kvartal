@@ -187,7 +187,15 @@ async function fetchPage(citySlug: string, dealType: 'rent' | 'sale', page: numb
     throw new Error(`Яндекс Недвижимость вернул HTTP ${response.status}`);
   }
 
-  return response.text();
+  const html = await response.text();
+
+  if (html.includes('Вы не робот?') || html.includes('smartcaptcha') || html.includes('Введите символы')) {
+    throw new Error(
+      'Яндекс Недвижимость показал антибот-проверку для серверного IP. С этого VPS объявления сейчас не отдаются.',
+    );
+  }
+
+  return html;
 }
 
 export class YandexRealtyParser extends ListingParser {
