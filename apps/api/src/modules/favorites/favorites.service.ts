@@ -10,7 +10,9 @@ export async function getFavorites(userId: string) {
     },
     orderBy: { createdAt: 'desc' },
   });
-  return favorites.map((favorite) => favorite.listing);
+  const listings = [];
+  for (const favorite of favorites) listings.push(favorite.listing);
+  return listings;
 }
 
 export async function addFavorite(userId: string, listingId: string) {
@@ -35,5 +37,7 @@ export async function getFavoriteIds(userId: string) {
     where: { userId },
     select: { listingId: true },
   });
-  return favorites.map((favorite) => favorite.listingId);
+  const listingIds = [];
+  for (const favorite of favorites) listingIds.push(favorite.listingId);
+  return listingIds;
 }
