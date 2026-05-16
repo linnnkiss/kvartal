@@ -25,6 +25,13 @@ interface ParserRun {
   finishedAt: string | null;
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  demo: 'Demo генератор',
+  csv: 'CSV файл',
+  avito: 'Авито',
+  yandex: 'Яндекс Недвижимость',
+};
+
 const PARSER_STATUS_LABELS: Record<ParserRun['status'], string> = {
   running: 'В работе',
   success: 'Успешно',
@@ -52,9 +59,9 @@ export function AdminPage() {
   const [parserRuns, setParserRuns] = useState<ParserRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [parserRunning, setParserRunning] = useState(false);
-  const [parserSource, setParserSource] = useState<'demo' | 'csv' | 'avito'>('demo');
+  const [parserSource, setParserSource] = useState<'demo' | 'csv' | 'avito' | 'yandex'>('yandex');
   const [parserLimit, setParserLimit] = useState(20);
-  const [parserCity, setParserCity] = useState('nizhniy_novgorod');
+  const [parserCity, setParserCity] = useState('kaliningrad');
   const [parserDealType, setParserDealType] = useState<'sale' | 'rent'>('sale');
   const [search, setSearch] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
@@ -203,6 +210,7 @@ export function AdminPage() {
   }
 
   const sourceOptions = Array.from(new Set(listings.map((listing) => listing.sourceName || 'manual'))).sort();
+  const showGeoControls = parserSource === 'avito' || parserSource === 'yandex';
 
   const filtered = listings.filter((l) => {
     const matchesSearch =
@@ -267,13 +275,14 @@ export function AdminPage() {
               onChange={(e) => setParserSource(e.target.value as any)}
               className="input-base text-sm sm:w-40"
             >
-              <option value="demo">Demo генератор</option>
-              <option value="csv">CSV файл</option>
+              <option value="yandex">Яндекс Недвижимость</option>
               <option value="avito">Авито</option>
+              <option value="csv">CSV файл</option>
+              <option value="demo">Demo генератор</option>
             </select>
           </div>
 
-          {parserSource === 'avito' && (
+          {showGeoControls && (
             <>
               <div className="min-w-0">
                 <label className="block text-xs text-gray-500 mb-1">Город (slug)</label>
@@ -282,6 +291,7 @@ export function AdminPage() {
                   onChange={(e) => setParserCity(e.target.value)}
                   className="input-base text-sm sm:w-52"
                 >
+                  <option value="kaliningrad">Калининград</option>
                   <option value="nizhniy_novgorod">Нижний Новгород</option>
                   <option value="moskva">Москва</option>
                   <option value="sankt-peterburg">Санкт-Петербург</option>
@@ -313,7 +323,7 @@ export function AdminPage() {
             <input
               type="number"
               min={1}
-              max={parserSource === 'avito' ? 50 : 100}
+              max={parserSource === 'demo' || parserSource === 'csv' ? 100 : 50}
               value={parserLimit}
               onChange={(e) => setParserLimit(Number(e.target.value))}
               className="input-base text-sm sm:w-24"
@@ -332,7 +342,9 @@ export function AdminPage() {
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2">
-          {parserSource === 'avito'
+          {parserSource === 'yandex'
+            ? 'Яндекс Недвижимость: реальные объявления с живой выдачи. Обычно стабильно отдаёт карточки без капчи.'
+            : parserSource === 'avito'
             ? 'Авито: реальные объявления с сайта. Требует ~30–60 сек. Может быть заблокирован при частых запросах.'
             : parserSource === 'csv'
             ? 'CSV импортирует из файла src/data/listings.csv'
@@ -353,6 +365,7 @@ export function AdminPage() {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <div className="font-medium text-gray-800">{run.source}</div>
+                  <div className="text-xs text-gray-400">{SOURCE_LABELS[run.source] || run.source}</div>
                   <div className="text-xs text-gray-400">
                     {new Intl.DateTimeFormat('ru-RU', {
                       day: '2-digit',
@@ -404,7 +417,10 @@ export function AdminPage() {
                       minute: '2-digit',
                     }).format(new Date(run.startedAt))}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-800">{run.source}</td>
+                  <td className="px-4 py-3 font-medium text-gray-800">
+                    <div>{run.source}</div>
+                    <div className="text-xs text-gray-400">{SOURCE_LABELS[run.source] || run.source}</div>
+                  </td>
                   <td className="px-4 py-3 hidden md:table-cell text-xs text-gray-500">
                     {[run.city, run.dealType ? DEAL_TYPE_LABELS[run.dealType] : null, `лимит ${run.requestedLimit}`]
                       .filter(Boolean)
@@ -449,7 +465,9 @@ export function AdminPage() {
             >
               <option value="all">Все источники</option>
               {sourceOptions.map((source) => (
-                <option key={source} value={source}>{source === 'manual' ? 'Вручную' : source}</option>
+                <option key={source} value={source}>
+                  {source === 'manual' ? 'Вручную' : SOURCE_LABELS[source] || source}
+                </option>
               ))}
             </select>
             <select

@@ -3,21 +3,23 @@ import { ParsedListing } from './parsers/base.parser';
 import { DemoParser } from './parsers/demo.parser';
 import { CsvParser } from './parsers/csv.parser';
 import { AvitoParser } from './parsers/avito.parser';
+import { YandexRealtyParser } from './parsers/yandex.parser';
 import { logger } from '../../lib/logger';
 
 interface RunParserOptions {
-  source?: 'demo' | 'csv' | 'avito';
+  source?: 'demo' | 'csv' | 'avito' | 'yandex';
   limit?: number;
   city?: string;
   dealType?: 'rent' | 'sale';
 }
 
 export async function runParser(options: RunParserOptions = {}) {
-  const { source = 'demo', limit = 20, city, dealType } = options;
+  const { source = 'yandex', limit = 20, city, dealType } = options;
 
   let parser;
   if (source === 'csv') parser = new CsvParser();
   else if (source === 'avito') parser = new AvitoParser();
+  else if (source === 'yandex') parser = new YandexRealtyParser();
   else parser = new DemoParser();
 
   const parserRun = await prisma.parserRun.create({
@@ -34,7 +36,7 @@ export async function runParser(options: RunParserOptions = {}) {
     const listings = await parser.run({ limit, city, dealType });
 
     if (listings.length === 0) {
-      const message = parser instanceof AvitoParser && parser.lastError
+      const message = 'lastError' in parser && parser.lastError
         ? parser.lastError
         : 'Парсер не вернул данных';
       const result = { saved: 0, skipped: 0, total: 0, source: parser.sourceName, message };
