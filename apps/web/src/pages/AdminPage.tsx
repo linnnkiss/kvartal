@@ -26,7 +26,6 @@ interface ParserRun {
 }
 
 const SOURCE_LABELS: Record<string, string> = {
-  demo: 'Demo генератор',
   csv: 'CSV файл',
   avito: 'Авито',
   yandex: 'Яндекс Недвижимость',
@@ -59,7 +58,7 @@ export function AdminPage() {
   const [parserRuns, setParserRuns] = useState<ParserRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [parserRunning, setParserRunning] = useState(false);
-  const [parserSource, setParserSource] = useState<'demo' | 'csv' | 'avito' | 'yandex'>('yandex');
+  const [parserSource, setParserSource] = useState<'csv' | 'avito' | 'yandex'>('yandex');
   const [parserLimit, setParserLimit] = useState(20);
   const [parserCity, setParserCity] = useState('kaliningrad');
   const [parserDealType, setParserDealType] = useState<'sale' | 'rent'>('sale');
@@ -278,7 +277,6 @@ export function AdminPage() {
               <option value="yandex">Яндекс Недвижимость</option>
               <option value="avito">Авито</option>
               <option value="csv">CSV файл</option>
-              <option value="demo">Demo генератор</option>
             </select>
           </div>
 
@@ -323,7 +321,7 @@ export function AdminPage() {
             <input
               type="number"
               min={1}
-              max={parserSource === 'demo' || parserSource === 'csv' ? 100 : 50}
+              max={parserSource === 'csv' ? 100 : 50}
               value={parserLimit}
               onChange={(e) => setParserLimit(Number(e.target.value))}
               className="input-base text-sm sm:w-24"
@@ -348,7 +346,7 @@ export function AdminPage() {
             ? 'Авито: реальные объявления с сайта. Требует ~30–60 сек. Может быть заблокирован при частых запросах.'
             : parserSource === 'csv'
             ? 'CSV импортирует из файла src/data/listings.csv'
-            : 'Demo генератор создаёт тестовые объявления.'}
+            : 'Источник парсера подключён.'}
         </p>
       </div>
 

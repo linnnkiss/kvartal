@@ -6,11 +6,14 @@ import { listingQuerySchema, createListingSchema, updateListingSchema } from './
 type ListingQuery = z.infer<typeof listingQuerySchema>;
 
 const AUTHOR_SELECT = { id: true, name: true, phone: true, email: true } as const;
+const PARSER_SOURCE_NAMES = ['yandex', 'avito', 'csv-import'] as const;
 
 export async function getListings(query: ListingQuery) {
   const { city, district, dealType, propertyType, rooms, priceMin, priceMax, areaMin, areaMax, sortBy, page, limit, search, showAll } = query;
 
-  const where: Prisma.ListingWhereInput = {};
+  const where: Prisma.ListingWhereInput = {
+    sourceName: { in: [...PARSER_SOURCE_NAMES] },
+  };
 
   if (!showAll) where.isHidden = false;
   if (city) where.city = { contains: city, mode: 'insensitive' };
@@ -63,7 +66,11 @@ export async function getListings(query: ListingQuery) {
 
 export async function getListingById(id: string, includeHidden = false) {
   const listing = await prisma.listing.findFirst({
-    where: { id, ...(includeHidden ? {} : { isHidden: false }) },
+    where: {
+      id,
+      sourceName: { in: [...PARSER_SOURCE_NAMES] },
+      ...(includeHidden ? {} : { isHidden: false }),
+    },
     include: { author: { select: AUTHOR_SELECT } },
   });
   if (!listing) throw Object.assign(new Error('Объявление не найдено'), { status: 404 });
@@ -93,6 +100,7 @@ export async function deleteListing(id: string, userId: string, role: string) {
 
 export async function getAllListingsAdmin() {
   return prisma.listing.findMany({
+    where: { sourceName: { in: [...PARSER_SOURCE_NAMES] } },
     orderBy: { createdAt: 'desc' },
     include: { author: { select: AUTHOR_SELECT } },
   });
@@ -100,10 +108,10 @@ export async function getAllListingsAdmin() {
 
 export async function getStats() {
   const [total, rent, sale, hidden] = await Promise.all([
-    prisma.listing.count(),
-    prisma.listing.count({ where: { dealType: 'rent' } }),
-    prisma.listing.count({ where: { dealType: 'sale' } }),
-    prisma.listing.count({ where: { isHidden: true } }),
+    prisma.listing.count({ where: { sourceName: { in: [...PARSER_SOURCE_NAMES] } } }),
+    prisma.listing.count({ where: { sourceName: { in: [...PARSER_SOURCE_NAMES] }, dealType: 'rent' } }),
+    prisma.listing.count({ where: { sourceName: { in: [...PARSER_SOURCE_NAMES] }, dealType: 'sale' } }),
+    prisma.listing.count({ where: { sourceName: { in: [...PARSER_SOURCE_NAMES] }, isHidden: true } }),
   ]);
   const usersCount = await prisma.user.count();
   return { total, rent, sale, hidden, users: usersCount };

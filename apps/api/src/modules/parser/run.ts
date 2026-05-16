@@ -3,7 +3,7 @@ import { runParser } from './parser.service';
 import { prisma } from '../../lib/prisma';
 
 async function main() {
-  const source = (process.argv[2] as 'demo' | 'csv' | 'avito' | 'yandex') ?? 'yandex';
+  const source = (process.argv[2] as 'csv' | 'avito' | 'yandex') ?? 'yandex';
   const limit = parseInt(process.argv[3] ?? '30');
   const city = process.argv[4];
 

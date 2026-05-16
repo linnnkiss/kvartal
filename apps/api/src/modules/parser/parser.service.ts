@@ -1,13 +1,12 @@
 import { prisma } from '../../lib/prisma';
 import { ParsedListing } from './parsers/base.parser';
-import { DemoParser } from './parsers/demo.parser';
 import { CsvParser } from './parsers/csv.parser';
 import { AvitoParser } from './parsers/avito.parser';
 import { YandexRealtyParser } from './parsers/yandex.parser';
 import { logger } from '../../lib/logger';
 
 interface RunParserOptions {
-  source?: 'demo' | 'csv' | 'avito' | 'yandex';
+  source?: 'csv' | 'avito' | 'yandex';
   limit?: number;
   city?: string;
   dealType?: 'rent' | 'sale';
@@ -19,8 +18,7 @@ export async function runParser(options: RunParserOptions = {}) {
   let parser;
   if (source === 'csv') parser = new CsvParser();
   else if (source === 'avito') parser = new AvitoParser();
-  else if (source === 'yandex') parser = new YandexRealtyParser();
-  else parser = new DemoParser();
+  else parser = new YandexRealtyParser();
 
   const parserRun = await prisma.parserRun.create({
     data: {
