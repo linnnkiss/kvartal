@@ -10,7 +10,7 @@ export async function getFavorites(userId: string) {
     },
     orderBy: { createdAt: 'desc' },
   });
-  return favorites.map((f) => f.listing);
+  return favorites.map((favorite) => favorite.listing);
 }
 
 export async function addFavorite(userId: string, listingId: string) {
@@ -35,5 +35,5 @@ export async function getFavoriteIds(userId: string) {
     where: { userId },
     select: { listingId: true },
   });
-  return favorites.map((f) => f.listingId);
+  return favorites.map((favorite) => favorite.listingId);
 }

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { listingQuerySchema, createListingSchema, updateListingSchema } from './listings.schemas';
 
@@ -11,7 +10,7 @@ const PARSER_SOURCE_NAMES = ['yandex', 'avito', 'csv-import'] as const;
 function buildListingWhere(query: ListingQuery) {
   const { city, district, dealType, propertyType, rooms, priceMin, priceMax, areaMin, areaMax, search, showAll } = query;
 
-  const where: Prisma.ListingWhereInput = {
+  const where: Record<string, any> = {
     sourceName: { in: [...PARSER_SOURCE_NAMES] },
   };
 
@@ -24,14 +23,14 @@ function buildListingWhere(query: ListingQuery) {
 
   if (priceMin !== undefined || priceMax !== undefined) {
     where.price = {};
-    if (priceMin !== undefined) (where.price as Prisma.FloatFilter).gte = priceMin;
-    if (priceMax !== undefined) (where.price as Prisma.FloatFilter).lte = priceMax;
+    if (priceMin !== undefined) where.price.gte = priceMin;
+    if (priceMax !== undefined) where.price.lte = priceMax;
   }
 
   if (areaMin !== undefined || areaMax !== undefined) {
     where.area = {};
-    if (areaMin !== undefined) (where.area as Prisma.FloatNullableFilter).gte = areaMin;
-    if (areaMax !== undefined) (where.area as Prisma.FloatNullableFilter).lte = areaMax;
+    if (areaMin !== undefined) where.area.gte = areaMin;
+    if (areaMax !== undefined) where.area.lte = areaMax;
   }
 
   if (search) {
@@ -50,12 +49,12 @@ export async function getListings(query: ListingQuery) {
   const { sortBy, page, limit } = query;
   const where = buildListingWhere(query);
 
-  const orderByMap: Record<string, Prisma.ListingOrderByWithRelationInput> = {
-    price_asc: { price: 'asc' },
-    price_desc: { price: 'desc' },
-    date_asc: { publishedAt: 'asc' },
-    date_desc: { publishedAt: 'desc' },
-  };
+  const orderByMap = {
+    price_asc: { price: 'asc' as const },
+    price_desc: { price: 'desc' as const },
+    date_asc: { publishedAt: 'asc' as const },
+    date_desc: { publishedAt: 'desc' as const },
+  } as const;
 
   const [items, total] = await Promise.all([
     prisma.listing.findMany({
@@ -80,7 +79,7 @@ export async function getAvailableCities(query: ListingQuery) {
     orderBy: { city: 'asc' },
   });
 
-  return rows.map((row) => row.city).filter(Boolean);
+  return rows.map((row: { city: string }) => row.city).filter(Boolean);
 }
 
 export async function getListingById(id: string, includeHidden = false) {
