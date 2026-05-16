@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import fs from 'fs';
+import path from 'path';
 import { config } from './config';
 import { rateLimiter } from './middleware/rateLimiter.middleware';
 import { errorHandler } from './middleware/error.middleware';
@@ -37,6 +39,18 @@ export function createApp() {
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'kvartal-api', timestamp: new Date().toISOString() });
   });
+
+  if (config.webDistPath) {
+    const resolvedWebDistPath = path.resolve(config.webDistPath);
+
+    if (fs.existsSync(resolvedWebDistPath)) {
+      app.use(express.static(resolvedWebDistPath));
+
+      app.get(/^(?!\/api).*/, (_req, res) => {
+        res.sendFile(path.join(resolvedWebDistPath, 'index.html'));
+      });
+    }
+  }
 
   app.use(errorHandler);
 

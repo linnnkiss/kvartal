@@ -3,6 +3,7 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-me-please',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   nodeEnv: process.env.NODE_ENV || 'development',
+  webDistPath: process.env.WEB_DIST_PATH || '',
   corsOrigins: (process.env.CORS_ORIGIN || 'http://localhost:5173')
     .split(',')
     .map((origin) => origin.trim())
