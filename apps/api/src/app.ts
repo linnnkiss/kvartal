@@ -13,7 +13,17 @@ import { parserRouter } from './modules/parser/parser.router';
 export function createApp() {
   const app = express();
 
-  app.use(cors({ origin: config.corsOrigin, credentials: true }));
+  app.use(cors({
+    origin(origin, callback) {
+      if (!origin || config.corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, false);
+    },
+    credentials: true,
+  }));
   app.use(express.json({ limit: '10mb' }));
   app.use(morgan(config.isDev ? 'dev' : 'combined'));
   app.use(rateLimiter);
