@@ -74,6 +74,11 @@ export function ListingDetailsPage() {
 
   const dealLabel = DEAL_TYPE_LABELS[listing.dealType] || listing.dealType;
   const typeLabel = PROPERTY_TYPE_LABELS[listing.propertyType] || listing.propertyType;
+  const fullAddress = [listing.city, listing.address].filter(Boolean).join(', ');
+  const encodedAddress = encodeURIComponent(fullAddress);
+  const embeddedMapUrl = `https://www.google.com/maps?q=${encodedAddress}&z=15&output=embed`;
+  const yandexMapUrl = `https://yandex.ru/maps/?text=${encodedAddress}`;
+  const doubleGisUrl = `https://2gis.ru/search/${encodedAddress}`;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
@@ -194,11 +199,37 @@ export function ListingDetailsPage() {
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t border-gray-100 bg-gray-50 rounded-xl p-3">
-              <div className="text-xs text-gray-500 text-center mb-1">📍 Расположение на карте</div>
-              <div className="text-xs text-gray-400 text-center">{listing.address}</div>
-              <div className="w-full h-32 bg-gray-200 rounded-lg mt-2 flex items-center justify-center text-gray-400 text-xs">
-                Карта (OpenStreetMap)
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="text-sm font-semibold text-gray-800 mb-2">Расположение</div>
+              <div className="text-xs text-gray-500 mb-3">{fullAddress}</div>
+
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                <iframe
+                  title={`Карта: ${listing.title}`}
+                  src={embeddedMapUrl}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-56 w-full"
+                />
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <a
+                  href={yandexMapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-primary-300 hover:text-primary-700"
+                >
+                  Открыть в Яндекс
+                </a>
+                <a
+                  href={doubleGisUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-primary-300 hover:text-primary-700"
+                >
+                  Открыть в 2ГИС
+                </a>
               </div>
             </div>
           </div>
